@@ -1,66 +1,106 @@
 import sys
+import argparse
 
 arguments = sys.argv
 print(len(sys.argv))
 print(arguments)
 
-for argument in arguments[1:]:
-    if argument == '-L' or argument == '--logical':
-        cluster_address_found = False
-        physical_address_found = False
-    if argument == '-P' or argument == '--physical':
-        cluster_address_found = False
-        logical_address_found = False
-    if argument == '-C' or argument == '--cluster':
-        logical_address_found = False
-        physical_address_found = False
-    if argument == '-b':
-        offset = arguments[arguments.index(argument) + 1]
-    elif "--partition-start" in argument:
-        option, offset = argument.split("=")
-    if argument == '-s':
-        sector_size = arguments[arguments.index(argument) + 1]
-    elif "--sector-size" in argument:
-        option, sector_size = argument.split("=")
-    if argument == '-l':
-        logical_address = arguments[arguments.index(argument) + 1]
-        print(logical_address)
-    elif "--logical-known" in argument:
-        option, logical_address = argument.split("=")
-        print(logical_address)
-    if argument == '-p':
-        physical_address = arguments[arguments.index(argument) + 1]
-        print(physical_address)
-    elif "--physical-known" in argument:
-        option, physical_address = argument.split("=")
-        print(physical_address)
-    if argument == '-c':
-        cluster_address = arguments[arguments.index(argument) + 1]
-        print(cluster_address)
-    elif "--cluster-known" in argument:
-        option, cluster_address = argument.split("=")
-        print(cluster_address)
-    if argument == '-k':
-        cluster_size = arguments[arguments.index(argument) + 1]
-        print(cluster_size)
-    elif "--cluster-size" in argument:
-        option, cluster_size = argument.split("=")
-        print(cluster_size)
-    if argument == '-r':
-        reserved = arguments[arguments.index(argument) + 1]
-        print(reserved)
-    elif "--reserved" in argument:
-        option, reserved = argument.split("=")
-        print(reserved)
-    if argument == '-t':
-        tables = arguments[arguments.index(argument) + 1]
-        print(tables)
-    elif "--fat-tables" in argument:
-        option, tables = argument.split("=")
-        print(tables)
-    if argument == '-f':
-        length = arguments[arguments.index(argument) + 1]
-        print(length)
-    elif "--fat-length" in argument:
-        option, length = argument.split("=")
-        print(length)
+
+# for argument in arguments[1:]:
+#     if argument == '-L' or argument == '--logical':
+#         cluster_address_found = False
+#         physical_address_found = False
+#     if argument == '-P' or argument == '--physical':
+#         cluster_address_found = False
+#         logical_address_found = False
+#     if argument == '-C' or argument == '--cluster':
+#         logical_address_found = False
+#         physical_address_found = False
+#     if argument == '-b':
+#         offset = arguments[arguments.index(argument) + 1]
+#     elif "--partition-start" in argument:
+#         option, offset = argument.split("=")
+#     if argument == '-s':
+#         sector_size = arguments[arguments.index(argument) + 1]
+#     elif "--sector-size" in argument:
+#         option, sector_size = argument.split("=")
+#     if argument == '-l':
+#         logical_address = arguments[arguments.index(argument) + 1]
+#         print(logical_address)
+#     elif "--logical-known" in argument:
+#         option, logical_address = argument.split("=")
+#         print(logical_address)
+#     if argument == '-p':
+#         physical_address = arguments[arguments.index(argument) + 1]
+#         print(physical_address)
+#     elif "--physical-known" in argument:
+#         option, physical_address = argument.split("=")
+#         print(physical_address)
+#     if argument == '-c':
+#         cluster_address = arguments[arguments.index(argument) + 1]
+#         print(cluster_address)
+#     elif "--cluster-known" in argument:
+#         option, cluster_address = argument.split("=")
+#         print(cluster_address)
+#     if argument == '-k':
+#         cluster_size = arguments[arguments.index(argument) + 1]
+#         print(cluster_size)
+#     elif "--cluster-size" in argument:
+#         option, cluster_size = argument.split("=")
+#         print(cluster_size)
+#     if argument == '-r':
+#         reserved = arguments[arguments.index(argument) + 1]
+#         print(reserved)
+#     elif "--reserved" in argument:
+#         option, reserved = argument.split("=")
+#         print(reserved)
+#     if argument == '-t':
+#         tables = arguments[arguments.index(argument) + 1]
+#         print(tables)
+#     elif "--fat-tables" in argument:
+#         option, tables = argument.split("=")
+#         print(tables)
+#     if argument == '-f':
+#         length = arguments[arguments.index(argument) + 1]
+#         print(length)
+#     elif "--fat-length" in argument:
+#         option, length = argument.split("=")
+#         print(length)
+
+# from https://youtu.be/q94B9n_2nf0
+def parseCommands():
+    # parse input out of sys.argv
+    parser = argparse.ArgumentParser(prog='Address Conversion')
+
+    # mutual exclusivity.  Either L or P or C. One is required.  Doc 16.4
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-L', '--logical', action='store_true')
+    group.add_argument('-P', '--physical', action='store_true')
+    group.add_argument('-C', '--cluster', action='store_true')
+
+    # the offset
+    parser.add_argument('-b', '--partition-start=', metavar='offset', type=int, default=0)
+
+    # the byte address
+    parser.add_argument('-B', '--byte-address', action='store_true')
+    # group2 = parser.add_argument_group()
+    # group2.add_argument('-B', '--byte-address', action='store_true')
+    parser.add_argument('-s', '--sector-size', metavar='bytes', type=int, default=512)
+    parser.add_argument('-l', '--logical-known=', metavar='address', type=int)
+    parser.add_argument('-p', '--physical-known=', metavar='address', type=int)
+    
+
+    return parser
+
+
+def main():
+    command = parseCommands()
+
+    # print usage to show command options
+    command.print_usage()
+
+    # print(command)
+
+
+if __name__ == '__main__':
+    main()
