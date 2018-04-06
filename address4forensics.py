@@ -88,7 +88,13 @@ def parseCommands():
     parser.add_argument('-s', '--sector-size', metavar='bytes', type=int, default=512)
     parser.add_argument('-l', '--logical-known=', metavar='address', type=int)
     parser.add_argument('-p', '--physical-known=', metavar='address', type=int)
-    
+
+    #should be grouped [-c -k -r -t -f]
+    parser.add_argument('-c', '--cluster-known=', metavar='address', type=int)
+    parser.add_argument('-k', '--cluster-size=', metavar='sectors', type=int)
+    parser.add_argument('-r', '--reserved=', metavar='sectors', type=int)
+    parser.add_argument('-t', '--fat-tables=', metavar='tables', type=int)
+    parser.add_argument('-f', '--fat-length=', metavar='sectors', type=int)
 
     return parser
 
