@@ -1,9 +1,9 @@
 import sys
 import argparse
 
-arguments = sys.argv
-print(len(sys.argv))
-print(arguments)
+# arguments = sys.argv
+# print(len(sys.argv))
+# print(arguments)
 
 
 # for argument in arguments[1:]:
@@ -79,31 +79,59 @@ def parseCommands():
     group.add_argument('-C', '--cluster', action='store_true')
 
     # the offset
-    parser.add_argument('-b', '--partition-start=', metavar='offset', type=int, default=0)
+    parser.add_argument('-b', '--partition-start', metavar='offset', type=int, default=0)
 
     # the byte address
     parser.add_argument('-B', '--byte-address', action='store_true')
     # group2 = parser.add_argument_group()
     # group2.add_argument('-B', '--byte-address', action='store_true')
     parser.add_argument('-s', '--sector-size', metavar='bytes', type=int, default=512)
-    parser.add_argument('-l', '--logical-known=', metavar='address', type=int)
-    parser.add_argument('-p', '--physical-known=', metavar='address', type=int)
+    parser.add_argument('-l', '--logical-known', metavar='address', type=int)
+    parser.add_argument('-p', '--physical-known', metavar='address', type=int)
 
-    #should be grouped [-c -k -r -t -f]
-    parser.add_argument('-c', '--cluster-known=', metavar='address', type=int)
-    parser.add_argument('-k', '--cluster-size=', metavar='sectors', type=int)
-    parser.add_argument('-r', '--reserved=', metavar='sectors', type=int)
-    parser.add_argument('-t', '--fat-tables=', metavar='tables', type=int)
-    parser.add_argument('-f', '--fat-length=', metavar='sectors', type=int)
+    # should be grouped [-c -k -r -t -f]
+    parser.add_argument('-c', '--cluster-known', metavar='address', type=int)
+    parser.add_argument('-k', '--cluster-size', metavar='sectors', type=int)
+    parser.add_argument('-r', '--reserved', metavar='sectors', type=int)
+    parser.add_argument('-t', '--fat-tables', metavar='tables', type=int)
+    parser.add_argument('-f', '--fat-length', metavar='sectors', type=int)
 
     return parser
+
+
+def logical(physicalKnown, clusterKnown, offset):
+    """given physical or cluster address calculate logical address"""
+
+    # given only physical address and cluster address left empty
+    if physicalKnown is not None and clusterKnown is None:
+        logicalAddress = physicalKnown - offset
+    # given only cluster (-c) as well as -k -r -t -f.  physical left empty
+    elif clusterKnown is not None and physicalKnown is None:
+        logicalAddress = namespace.partition_start + ((clusterKnown - 2) * namespace.cluster_size) + \
+                         namespace.reserved + (namespace.fat_tables * namespace.fat_length) - offset
+    # nothing was given so error
+    else:
+        print("error")
+        return
+    return logicalAddress
 
 
 def main():
     command = parseCommands()
 
     # print usage to show command options
-    command.print_usage()
+    # command.print_usage()
+
+    # namespace holds the values entered from the command line
+    global namespace
+    namespace = command.parse_args()
+
+    # print(namespace)
+
+    # user wants logical address
+    if namespace.logical:
+        address = logical(namespace.physical_known, namespace.cluster_known, namespace.partition_start)
+        print(address)
 
     # print(command)
 
