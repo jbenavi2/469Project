@@ -132,6 +132,13 @@ def physical(logicalKnown, clusterKnown, offset):
     return physicalAddress
 
 
+def cluster(logicalKnown, physicalKnown, offset):
+    """given logical or physical calculate cluster address"""
+
+    if logicalKnown is not None and physicalKnown is None:
+        print("TODO")  # TODO
+
+
 def main():
     command = parseCommands()
 
@@ -152,7 +159,7 @@ def main():
         address = physical(namespace.logical_known, namespace.cluster_known, namespace.partition_start)
         print(address)
     elif namespace.cluster:
-        print("TODO")
+        print("TODO")  # TODO 
 
     # print(command)
 
