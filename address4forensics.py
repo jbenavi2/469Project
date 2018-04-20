@@ -136,7 +136,14 @@ def cluster(logicalKnown, physicalKnown, offset):
     """given logical or physical calculate cluster address"""
 
     if logicalKnown is not None and physicalKnown is None:
-        print("TODO")  # TODO
+        clusterAddress = logicalKnown - namespace.reserved - (namespace.fat_tables * namespace.fat_length) // \
+                        namespace.cluster_size + 2
+    elif physicalKnown is not None and logicalKnown is None:
+        clusterAddress = physicalKnown - offset
+    else:
+        print("error")
+        return
+    return clusterAddress
 
 
 def main():
@@ -159,7 +166,8 @@ def main():
         address = physical(namespace.logical_known, namespace.cluster_known, namespace.partition_start)
         print(address)
     elif namespace.cluster:
-        print("TODO")  # TODO 
+        address = cluster(namespace.logical_known, namespace.physical_known, namespace.partition_start)
+        print(address)
 
     # print(command)
 
