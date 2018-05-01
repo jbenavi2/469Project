@@ -1,6 +1,7 @@
 import hashlib
 import os
 import struct
+import sys
 
 PartitionTypes = {
 '0x0': "Empty",
@@ -33,7 +34,53 @@ PartitionTypes = {
 '0xeb': "BeOS",
 }
 
-file_path = raw_input()
+FAT16 = ['0x4', '0x6', '0x86']
+FAT32 = ['0xb', '0xc', '0x1b']
+
+def fat16(start_address):
+    offset = start_address[0]
+    with open(file_path, 'rb') as f:
+        f.seek(offset * 512)
+        VBR = f.read(512)
+    bytes_sector = struct.unpack("<H", VBR[11:13])
+    # print(bytes_sector[0])
+    sector_cluster = struct.unpack("<B", VBR[13:14])
+    # print(sector_cluster[0])
+    reserved_area = struct.unpack("<H", VBR[14:16])
+    # print(reserved_area[0])
+    FATs = struct.unpack("<B", VBR[16:17])
+    # print(FATs[0])
+    FAT_size = struct.unpack("<H", VBR[22:24])
+
+    print("Reserved area: Start sector: 0 Ending sector: {} Size: {} sectors".format(reserved_area[0] - 1,
+                                                                                     reserved_area[0]))
+    print("Sectors per cluster: {} sectors".format(sector_cluster[0]))
+    print("# of FATs: {}".format(FATs[0]))
+    print("The size of each FAT: {} sectors".format(FAT_size[0]))
+
+
+def fat32(start_address):
+    offset = start_address[0]
+    with open(file_path, 'rb') as f:
+        f.seek(offset * 512)
+        VBR = f.read(512)
+    bytes_sector = struct.unpack("<H", VBR[11:13])
+    # print(bytes_sector[0])
+    sector_cluster = struct.unpack("<B", VBR[13:14])
+    # print(sector_cluster[0])
+    reserved_area = struct.unpack("<H", VBR[14:16])
+    # print(reserved_area[0])
+    FATs = struct.unpack("<B", VBR[16:17])
+    # print(FATs[0])
+    FAT_size = struct.unpack("<L", VBR[36:40])
+
+    print("Reserved area: Start sector: 0 Ending sector: {} Size: {} sectors".format(reserved_area[0] - 1,
+                                                                                     reserved_area[0]))
+    print("Sectors per cluster: {} sectors".format(sector_cluster[0]))
+    print("# of FATs: {}".format(FATs[0]))
+    print("The size of each FAT: {} sectors".format(FAT_size[0]))
+
+file_path = input()
 head, tail = os.path.split(file_path)
 file_name, file_format = tail.split(".")
 md5 = hashlib.md5()
@@ -45,6 +92,12 @@ with open(file_path, 'rb') as file_object:
     data = file_object.read(file_size)
     md5.update(data)
     sha1.update(data)
+MD5_filename = 'MD5-{}.txt'.format(file_name)
+SHA1_filename = 'SHA1-{}.txt'.format(file_name)
+with open(MD5_filename, 'w') as checksum:
+    checksum.write(md5.hexdigest())
+with open(SHA1_filename, 'w') as checksum:
+    checksum.write(sha1.hexdigest())
 
 with open(file_path, 'rb') as file_object:
     MBR_data = file_object.read(boot_sector_size) #read first 512 bytes
@@ -58,26 +111,31 @@ start_address = struct.unpack("<L", MBR_data[454:458])
 partition_size = struct.unpack("<L", MBR_data[458:462])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
 
-offset = start_address[0]
-with open(file_path, 'rb') as f:
-    f.seek(offset * 512)
-    VBR = f.read(512)
-bytes_sector = struct.unpack("<H", VBR[11:13])
-print(bytes_sector[0])
-sector_cluster = struct.unpack("<B", VBR[13:14])
-print(sector_cluster[0])
-reserved_area = struct.unpack("<H", VBR[14:16])
-print(reserved_area[0])
-FATs = struct.unpack("<B", VBR[16:17])
-print(FATs[0])
-FAT_size = struct.unpack("<L", VBR[36:40])
-test = struct.unpack("<H", VBR[19:21])
-print(test[0])
+# offset = start_address[0]
+# with open(file_path, 'rb') as f:
+#     f.seek(offset * 512)
+#     VBR = f.read(512)
+# bytes_sector = struct.unpack("<H", VBR[11:13])
+# print(bytes_sector[0])
+# sector_cluster = struct.unpack("<B", VBR[13:14])
+# print(sector_cluster[0])
+# reserved_area = struct.unpack("<H", VBR[14:16])
+# print(reserved_area[0])
+# FATs = struct.unpack("<B", VBR[16:17])
+# print(FATs[0])
+# FAT_size = struct.unpack("<L", VBR[36:40])
+# test = struct.unpack("<H", VBR[19:21])
+# print(test[0])
+#
+# print("Reserved area: Start sector: 0 Ending sector: {} Size: {} sectors".format(reserved_area[0] - 1, reserved_area[0]))
+# print("Sectors per cluster: {} sectors".format(sector_cluster[0]))
+# print("# of FATs: {}".format(FATs[0]))
+# print("The size of each FAT: {} sectors".format(FAT_size[0]))
 
-print("Reserved area: Start sector: 0 Ending sector: {} Size: {} sectors".format(reserved_area[0] - 1, reserved_area[0]))
-print("Sectors per cluster: {} sectors".format(sector_cluster[0]))
-print("# of FATs: {}".format(FATs[0]))
-print("The size of each FAT: {} sectors".format(FAT_size[0]))
+if hex_value in FAT16:
+    fat16(start_address)
+elif hex_value in FAT32:
+    fat32(start_address)
 
 #second partition
 ptype = struct.unpack("<B", MBR_data[466:467])
@@ -88,6 +146,11 @@ start_address = struct.unpack("<L", MBR_data[470:474])
 partition_size = struct.unpack("<L", MBR_data[474:478])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
 
+if hex_value in FAT16:
+    fat16(start_address)
+elif hex_value in FAT32:
+    fat32(start_address)
+
 #third partition
 ptype = struct.unpack("<B", MBR_data[482:483])
 if hex(ptype[0]) in PartitionTypes:
@@ -96,6 +159,10 @@ if hex(ptype[0]) in PartitionTypes:
 start_address = struct.unpack("<L", MBR_data[486:490])
 partition_size = struct.unpack("<L", MBR_data[490:494])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
+if hex_value in FAT16:
+    fat16(start_address)
+elif hex_value in FAT32:
+    fat32(start_address)
 
 #fourth partition
 ptype = struct.unpack("<B", MBR_data[498:499])
@@ -106,6 +173,10 @@ start_address = struct.unpack("<L", MBR_data[502:506])
 partition_size = struct.unpack("<L", MBR_data[506:510])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
 
-print(file_name)
-print(md5.hexdigest())
-print(sha1.hexdigest())
+if hex_value in FAT16:
+    fat16(start_address)
+elif hex_value in FAT32:
+    fat32(start_address)
+# print(file_name)
+# print(md5.hexdigest())
+# print(sha1.hexdigest())
