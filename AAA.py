@@ -42,30 +42,48 @@ file_size = os.path.getsize(file_path)
 boot_sector_size = 512
 
 with open(file_path, 'rb') as file_object:
-	data = file_object.read(file_size)
-	md5.update(data)
-	sha1.update(data)
+    data = file_object.read(file_size)
+    md5.update(data)
+    sha1.update(data)
 
 with open(file_path, 'rb') as file_object:
-	MBR_data = file_object.read(boot_sector_size) #read first 512 bytes
+    MBR_data = file_object.read(boot_sector_size) #read first 512 bytes
 
 #first partition
 ptype = struct.unpack("<B", MBR_data[450:451])
 if hex(ptype[0]) in PartitionTypes:
-	hex_value = hex(ptype[0])
-	partition_type = PartitionTypes[hex(ptype[0])]
+    hex_value = hex(ptype[0])
+    partition_type = PartitionTypes[hex(ptype[0])]
 start_address = struct.unpack("<L", MBR_data[454:458])
 partition_size = struct.unpack("<L", MBR_data[458:462])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
-if hex(ptype[0]) == '0xb' or hex(ptype[0]) == '0xc':
-	print(start_address)
 
+offset = start_address[0]
+with open(file_path, 'rb') as f:
+    f.seek(offset * 512)
+    VBR = f.read(512)
+bytes_sector = struct.unpack("<H", VBR[11:13])
+print(bytes_sector[0])
+sector_cluster = struct.unpack("<B", VBR[13:14])
+print(sector_cluster[0])
+reserved_area = struct.unpack("<H", VBR[14:16])
+print(reserved_area[0])
+FATs = struct.unpack("<B", VBR[16:17])
+print(FATs[0])
+FAT_size = struct.unpack("<L", VBR[36:40])
+test = struct.unpack("<H", VBR[19:21])
+print(test[0])
+
+print("Reserved area: Start sector: 0 Ending sector: {} Size: {} sectors".format(reserved_area[0] - 1, reserved_area[0]))
+print("Sectors per cluster: {} sectors".format(sector_cluster[0]))
+print("# of FATs: {}".format(FATs[0]))
+print("The size of each FAT: {} sectors".format(FAT_size[0]))
 
 #second partition
 ptype = struct.unpack("<B", MBR_data[466:467])
 if hex(ptype[0]) in PartitionTypes:
-	hex_value = hex(ptype[0])
-	partition_type = PartitionTypes[hex(ptype[0])]
+    hex_value = hex(ptype[0])
+    partition_type = PartitionTypes[hex(ptype[0])]
 start_address = struct.unpack("<L", MBR_data[470:474])
 partition_size = struct.unpack("<L", MBR_data[474:478])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
@@ -73,8 +91,8 @@ print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_t
 #third partition
 ptype = struct.unpack("<B", MBR_data[482:483])
 if hex(ptype[0]) in PartitionTypes:
-	hex_value = hex(ptype[0])
-	partition_type = PartitionTypes[hex(ptype[0])]
+    hex_value = hex(ptype[0])
+    partition_type = PartitionTypes[hex(ptype[0])]
 start_address = struct.unpack("<L", MBR_data[486:490])
 partition_size = struct.unpack("<L", MBR_data[490:494])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
@@ -82,22 +100,11 @@ print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_t
 #fourth partition
 ptype = struct.unpack("<B", MBR_data[498:499])
 if hex(ptype[0]) in PartitionTypes:
-	hex_value = hex(ptype[0])
-	partition_type = PartitionTypes[hex(ptype[0])]
+    hex_value = hex(ptype[0])
+    partition_type = PartitionTypes[hex(ptype[0])]
 start_address = struct.unpack("<L", MBR_data[502:506])
 partition_size = struct.unpack("<L", MBR_data[506:510])
 print("({:0>2}) {}, {:0>10}, {:0>10}".format(hex_value.lstrip('0x'), partition_type, start_address[0], partition_size[0]))
-
-#FAT16/32 partition
-first = struct.unpack(">L", MBR_data[0:4])
-second = struct.unpack(">L", MBR_data[4:8])
-third = struct.unpack(">L", MBR_data[8:12])
-fourth = struct.unpack(">L", MBR_data[12:16])
-
-print(hex(first[0]))
-print(hex(second[0]))
-print(hex(third[0]))
-print(hex(fourth[0]))
 
 print(file_name)
 print(md5.hexdigest())
