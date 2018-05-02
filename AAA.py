@@ -1,3 +1,8 @@
+"""
+TASK 2: Acquisition, Authentication, and Analysis
+Author:  Julian DeSantos
+For:     CSE 469
+"""
 import hashlib
 import os
 import struct
@@ -79,6 +84,7 @@ def fat32(start_address):
     print("Sectors per cluster: {} sectors".format(sector_cluster[0]))
     print("# of FATs: {}".format(FATs[0]))
     print("The size of each FAT: {} sectors".format(FAT_size[0]))
+
 
 file_path = input()
 head, tail = os.path.split(file_path)

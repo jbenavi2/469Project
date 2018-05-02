@@ -1,3 +1,9 @@
+"""
+TASK 1 part b: MAC Conversion
+Author:  Javier Benavides
+For:     CSE 469
+"""
+
 import argparse
 import sys
 import datetime as dt
@@ -49,7 +55,7 @@ def bin2time(binary):
 def main():
     command = macCommands()
 
-    command.print_usage()
+    # command.print_usage()
 
     """test conversions"""
     # sample_date = '0x4f42'
